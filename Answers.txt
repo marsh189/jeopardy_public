@@ -1,0 +1,3 @@
+The connection control mechanism that is negotiated between a client and server
+The process of establishing a TCP connection
+The protocol for communication between two email servers

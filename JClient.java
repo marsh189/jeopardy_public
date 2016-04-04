@@ -1,5 +1,5 @@
 /**
- * MTClient.java
+ * JClient.java
  *
  * This program implements a simple multithreaded chat client.  It connects to the
  * server (assumed to be localhost on port 7654) and starts two threads:
@@ -7,13 +7,10 @@
  * for the user to type something in that will be sent to the server.
  * Anything sent to the server is broadcast to all clients.
  *
- * The MTClient uses a ClientListener whose code is in a separate file.
- * The ClientListener runs in a separate thread, recieves messages form the server,
+ * The JClient uses a JClientListener whose code is in a separate file.
+ * The JClientListener runs in a separate thread, recieves messages form the server,
  * and displays them on the screen.
- *
- * Data received is sent to the output screen, so it is possible that as
- * a user is typing in information a message from the server will be
- * inserted.  
+ * 
  *
  */
 import java.net.Socket;
