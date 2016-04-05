@@ -28,7 +28,7 @@ public class JServer
 	public int clientCount;
 	private ArrayList<String> answers = new ArrayList<String>();
 	private ArrayList<String> questions = new ArrayList<String>();
-
+	String[] names = new String[4];
 	public JServer()
 	{
 		socketList = new ArrayList<Socket>();
@@ -64,8 +64,14 @@ public class JServer
 				Socket connectionSock = serverSock.accept();
 				// Add this socket to the list
 				socketList.add(connectionSock);
-				// Send to ClientHandler the socket and arraylist of all sockets
-				JClientHandler handler = new JClientHandler(connectionSock, this.socketList, this.answers,this.questions);
+
+				//Store Names to array
+				BufferedReader clientInput = new BufferedReader(
+					new InputStreamReader(connectionSock.getInputStream()));
+				names[socketList.size() -1] = clientInput.readLine();
+
+				// Send to ClientHandler the socket,arraylist,list of q and a, and names of all sockets
+				JClientHandler handler = new JClientHandler(connectionSock, this.socketList, this.answers,this.questions, this.names);
 				Thread theThread = new Thread(handler);
 				theThread.start();
 			}

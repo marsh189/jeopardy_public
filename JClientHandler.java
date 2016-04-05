@@ -27,41 +27,39 @@ public class JClientHandler implements Runnable
 	boolean gameStart = false;
 	boolean firstBuzzed = false;
 
-	JClientHandler(Socket sock, ArrayList<Socket> socketList, ArrayList<String> ans, ArrayList<String> q)
+	JClientHandler(Socket sock, ArrayList<Socket> socketList, ArrayList<String> ans, ArrayList<String> q, String[] nameArr)
 	{
 		this.connectionSock = sock;
 		this.socketList = socketList;	// Keep reference to master list
 		this.answers = ans;
 		this.questions = q;
+		this.names = nameArr;
 	}
 
 	public void run()
 	{
-        		// Get data from a client and send it to everyone else
+        		// Get data from a client and Starts the game
 		try
 		{
 			int clientNum = socketList.size();
 			System.out.println("Connection made with Client number " + clientNum);
-			BufferedReader clientInput = new BufferedReader(
-				new InputStreamReader(connectionSock.getInputStream()));
-
 			DataOutputStream welcomeClient = new DataOutputStream(socketList.get(clientNum - 1).getOutputStream());
-			names[clientNum -1] = clientInput.readLine();
 			welcomeClient.writeBytes(clientNum  + names[clientNum - 1] + "\n");
 			System.out.println("Name: " + names[clientNum-1]);
 			if(clientNum == (names.length - 1))
 			{
-				String start = "All Clients have joined it is time to play JEAPORDY! \n";
+				String start = "All Clients have joined. It is time to play JEAPORDY! \n";
 				for (Socket s : socketList)
 				{
 					DataOutputStream clientOutput = new DataOutputStream(s.getOutputStream());
-					clientOutput.writeBytes(start + "\n");
+					welcomeClient.writeBytes(start + "\n");
 				}
 				System.out.println(start);
-				gameStart = true;
 
 				SendAnswer();
 			}
+
+			//SHOULD NOT NEED, I KEPT FOR REFERENCE
 			// while (true)
 			// {
 			// 	// Get data sent from a client
@@ -102,25 +100,36 @@ public class JClientHandler implements Runnable
 
 	public void SendAnswer() throws Exception
 	{
-		if(gameStart)
+
+		int randomNum = (int)(Math.random() * (answers.size() + 1));
+		for (Socket s : socketList)
 		{
-			int randomNum = (int)(Math.random() * (answers.size() + 1));
-			for (Socket s : socketList)
-			{
-				DataOutputStream clientOutput = new DataOutputStream(s.getOutputStream());
-				clientOutput.writeBytes("Answer: " + answers.get(randomNum) + "\n");
-			}
-			System.out.println("Answer: " + answers.get(randomNum));
-			GetResponse(randomNum);
+			DataOutputStream clientOutput = new DataOutputStream(s.getOutputStream());
+			clientOutput.writeBytes("Answer: " + answers.get(randomNum) + "\n");
 		}
+		System.out.println("Answer: " + answers.get(randomNum));
+		GetResponse(randomNum);
 	}
 
 	public void GetResponse(int num) throws Exception
 	{
-		while(firstBuzzed == false)
+		gameStart = true;
+		if(firstBuzzed == false)
 		{
-
+			if(gameStart = true)
+			{
+				BufferedReader buzzIn = new BufferedReader(
+					new InputStreamReader(connectionSock.getInputStream()));
+				for (Socket s : socketList)
+				{
+					DataOutputStream clientOutput = new DataOutputStream(s.getOutputStream());
+					//clientOutput.writeBytes(names[count] + " buzzed in first." + "\n");
+	
+				}
+				firstBuzzed = true;
+			}
 		}
+	
 	}
 
 } // ClientHandler for JServer.java
