@@ -21,19 +21,15 @@ public class JClientHandler implements Runnable
 {
 	private Socket connectionSock = null;
 	private ArrayList<Socket> socketList;
-	private ArrayList<String> answers;
-	private ArrayList<String> questions;
 	public boolean myTurn = true;
 	public String receivedMessage;
-	String[] names = new String[4];
+	ArrayList<String> names;
 	boolean gameStart = false;
 
-	JClientHandler(Socket sock, ArrayList<Socket> socketList, ArrayList<String> ans, ArrayList<String> q, String[] nameArr)
+	JClientHandler(Socket sock, ArrayList<Socket> socketList, ArrayList<String> nameArr)
 	{
 		this.connectionSock = sock;
 		this.socketList = socketList;	// Keep reference to master list
-		this.answers = ans;
-		this.questions = q;
 		this.names = nameArr;
 	}
 
@@ -45,13 +41,13 @@ public class JClientHandler implements Runnable
 			int clientNum = socketList.size();
 			System.out.println("Connection made with Client number " + clientNum);
 			DataOutputStream welcomeClient = new DataOutputStream(socketList.get(clientNum - 1).getOutputStream());
-			welcomeClient.writeBytes(clientNum  + names[clientNum - 1] + "\n");
-			System.out.println("Name: " + names[clientNum-1]);
+			welcomeClient.writeBytes(clientNum  + names.get(clientNum - 1) + "\n");
+			System.out.println("Name: " + names.get(clientNum-1));
 			if(clientNum == 4)
 			{
 				welcomeClient.writeBytes(4 + "\n");
 			}
-			if(clientNum == (names.length - 1))
+			if(clientNum == 3)
 			{
 				String start = "All Clients have joined. It is time to play JEAPORDY! \n";
 				for (Socket s : socketList)
@@ -61,7 +57,6 @@ public class JClientHandler implements Runnable
 				}
 				System.out.println(start);
 
-				SendAnswer();
 			}
 		}
 		catch (Exception e)
@@ -72,20 +67,8 @@ public class JClientHandler implements Runnable
 		}
 	}
 
-	public void SendAnswer() throws Exception
-	{
 
-		int randomNum = (int)(Math.random() * answers.size());
-		for (Socket s : socketList)
-		{
-			DataOutputStream clientOutput = new DataOutputStream(s.getOutputStream());
-			clientOutput.writeBytes("Answer: " + answers.get(randomNum) + "\n");
-		}
-		System.out.println("Answer: " + answers.get(randomNum));
-		GetResponse(randomNum);
-	}
-
-	public void GetResponse(int num) throws Exception
+	public void GetResponse() throws Exception
 	{
 		gameStart = true;
 		while(myTurn)
@@ -95,6 +78,7 @@ public class JClientHandler implements Runnable
 				BufferedReader clientInput = new BufferedReader(
 					new InputStreamReader(connectionSock.getInputStream()));
 				receivedMessage = clientInput.readLine();
+				System.out.println(receivedMessage);
 			}
 		}	
 	}

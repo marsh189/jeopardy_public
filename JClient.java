@@ -61,5 +61,5 @@ public class JClient
 			System.out.println(e.getMessage());
 		}
 	}
-} // MTClient
+} // JClient
 

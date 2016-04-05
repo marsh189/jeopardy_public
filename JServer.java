@@ -28,7 +28,7 @@ public class JServer
 	public int clientCount;
 	private ArrayList<String> answers = new ArrayList<String>();
 	private ArrayList<String> questions = new ArrayList<String>();
-	String[] names = new String[4];
+	ArrayList<String> names = new ArrayList<String>();
 
 	ArrayList<JClientHandler> handlerList = new ArrayList<JClientHandler>();
 	int[] buzzOrder = new int[3];
@@ -79,12 +79,29 @@ public class JServer
 							//Store Names to array
 							BufferedReader clientInput = new BufferedReader(
 								new InputStreamReader(connectionSock.getInputStream()));
-							names[socketList.size() -1] = clientInput.readLine();
+							names.add(clientInput.readLine());
 							
 							// Send to ClientHandler the socket,arraylist,list of q and a, and names of all sockets
-							JClientHandler handler = new JClientHandler(connectionSock, this.socketList, this.answers,this.questions, this.names);
+							JClientHandler handler = new JClientHandler(connectionSock, this.socketList, this.names);
 							Thread theThread = new Thread(handler);
 							theThread.start();
+							System.out.println(names.size());
+							if(socketList.size() == 1 && names.size() == 1)
+							{
+								handlerList.add(handler);
+								System.out.println(handlerList.size());
+							}
+							else if(socketList.size() == 2 && names.size() == 2)
+							{
+								handlerList.add(handler);
+								System.out.println(handlerList.size());
+							}
+							else if(socketList.size() == 3 && names.size() == 3)
+							{
+								handlerList.add(handler);
+								System.out.println(handlerList.size());
+							}
+
 							if(socketList.size() == 3)
 							{
 								state = 1;
@@ -92,48 +109,72 @@ public class JServer
 							}
 						}
 						
-					case 1: //wait for buzz
-						int i = 0;
+					case 1:
+						try
+						{
+							int randomNum = (int)(Math.random() * answers.size());
+							for (JClientHandler j : handlerList)
+							{
+								j.SendMessage(answers.get(randomNum));
+							}
+							System.out.println("Answer: " + answers.get(randomNum));
+						}
+						catch (Exception e)
+						{
+							System.out.println(e.getMessage());
+						}
+
+					case 2: //wait for buzz
+						
 						while(true)
 						{
-							for(JClientHandler j : handlerList)
+							try
 							{
-								System.out.println(j.receivedMessage);
-								if(j.receivedMessage.equals("buzz"))
+								handlerList.get(0).GetResponse();
+								handlerList.get(1).GetResponse();
+								handlerList.get(2).GetResponse();
+
+
+								if(handlerList.get(0).receivedMessage.equals("1"))
 								{
-									System.out.println("here");
-									buzzOrder[i] = handlerList.indexOf(j);
-									i++;
-									j.myTurn = false;
-									j.receivedMessage = "";
+									buzzOrder[0] = 0;
+									handlerList.get(0).receivedMessage = "";
+								}
+								else if(handlerList.get(1).receivedMessage.equals("2"))
+								{
+									buzzOrder[0] = 1;
+									handlerList.get(1).receivedMessage = "";
+								}
+								else if(handlerList.get(2).receivedMessage.equals("3"))
+								{
+									buzzOrder[0] = 2;
+									handlerList.get(2).receivedMessage = "";
+								}
+
+								if(buzzOrder[buzzOrder.length - 1] > 0)
+								{
+									state = 3;
+								}
+
+								if (state == 3)
+								{
+									for(JClientHandler j : handlerList)
+									{
+
+										j.SendMessage(names.get(buzzOrder[0]) + "buzzed in first.");
+								
+									}
+									break;
 								}
 							}
-
-							if(buzzOrder[buzzOrder.length - 1] > 0)
+							catch (Exception e)
 							{
-								state = 2;
-							}
-
-							if (state == 2)
-							{
-								for(JClientHandler j : handlerList)
-								{
-									try
-									{
-										j.SendMessage(names[buzzOrder[0]] + "buzzed in first.");
-									}
-
-									catch (Exception e)
-									{
-										System.out.println(e.getMessage());
-									}
-								}
-								break;
+								System.out.println(e.getMessage());
 							}
 						}
 						break;
 
-					case 2: //wait for answer
+					case 3: //wait for answer
 						break;
 
 					default:
