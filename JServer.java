@@ -29,6 +29,11 @@ public class JServer
 	private ArrayList<String> answers = new ArrayList<String>();
 	private ArrayList<String> questions = new ArrayList<String>();
 	String[] names = new String[4];
+
+	ArrayList<JClientHandler> handlerList = new ArrayList<JClientHandler>();
+	int[] buzzOrder = new int[3];
+	int state = 0;
+
 	public JServer()
 	{
 		socketList = new ArrayList<Socket>();
@@ -61,19 +66,82 @@ public class JServer
 			// using control-c
 			while (true)
 			{
-				Socket connectionSock = serverSock.accept();
-				// Add this socket to the list
-				socketList.add(connectionSock);
+		
+				switch (state)
+				{
+					case 0: //connect clients
+						while(true)
+						{
+							Socket connectionSock = serverSock.accept();
+							// Add this socket to the list
+							socketList.add(connectionSock);
 
-				//Store Names to array
-				BufferedReader clientInput = new BufferedReader(
-					new InputStreamReader(connectionSock.getInputStream()));
-				names[socketList.size() -1] = clientInput.readLine();
+							//Store Names to array
+							BufferedReader clientInput = new BufferedReader(
+								new InputStreamReader(connectionSock.getInputStream()));
+							names[socketList.size() -1] = clientInput.readLine();
+							
+							// Send to ClientHandler the socket,arraylist,list of q and a, and names of all sockets
+							JClientHandler handler = new JClientHandler(connectionSock, this.socketList, this.answers,this.questions, this.names);
+							Thread theThread = new Thread(handler);
+							theThread.start();
+							if(socketList.size() == 3)
+							{
+								state = 1;
+								break;
+							}
+						}
+						
+					case 1: //wait for buzz
+						int i = 0;
+						while(true)
+						{
+							for(JClientHandler j : handlerList)
+							{
+								System.out.println(j.receivedMessage);
+								if(j.receivedMessage.equals("buzz"))
+								{
+									System.out.println("here");
+									buzzOrder[i] = handlerList.indexOf(j);
+									i++;
+									j.myTurn = false;
+									j.receivedMessage = "";
+								}
+							}
 
-				// Send to ClientHandler the socket,arraylist,list of q and a, and names of all sockets
-				JClientHandler handler = new JClientHandler(connectionSock, this.socketList, this.answers,this.questions, this.names);
-				Thread theThread = new Thread(handler);
-				theThread.start();
+							if(buzzOrder[buzzOrder.length - 1] > 0)
+							{
+								state = 2;
+							}
+
+							if (state == 2)
+							{
+								for(JClientHandler j : handlerList)
+								{
+									try
+									{
+										j.SendMessage(names[buzzOrder[0]] + "buzzed in first.");
+									}
+
+									catch (Exception e)
+									{
+										System.out.println(e.getMessage());
+									}
+								}
+								break;
+							}
+						}
+						break;
+
+					case 2: //wait for answer
+						break;
+
+					default:
+						break;
+
+				}
+
+
 			}
 			// Will never get here, but if the above loop is given
 			// an exit condition then we'll go ahead and close the socket

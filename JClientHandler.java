@@ -23,9 +23,10 @@ public class JClientHandler implements Runnable
 	private ArrayList<Socket> socketList;
 	private ArrayList<String> answers;
 	private ArrayList<String> questions;
+	public boolean myTurn = true;
+	public String receivedMessage;
 	String[] names = new String[4];
 	boolean gameStart = false;
-	boolean firstBuzzed = false;
 
 	JClientHandler(Socket sock, ArrayList<Socket> socketList, ArrayList<String> ans, ArrayList<String> q, String[] nameArr)
 	{
@@ -46,49 +47,22 @@ public class JClientHandler implements Runnable
 			DataOutputStream welcomeClient = new DataOutputStream(socketList.get(clientNum - 1).getOutputStream());
 			welcomeClient.writeBytes(clientNum  + names[clientNum - 1] + "\n");
 			System.out.println("Name: " + names[clientNum-1]);
+			if(clientNum == 4)
+			{
+				welcomeClient.writeBytes(4 + "\n");
+			}
 			if(clientNum == (names.length - 1))
 			{
 				String start = "All Clients have joined. It is time to play JEAPORDY! \n";
 				for (Socket s : socketList)
 				{
 					DataOutputStream clientOutput = new DataOutputStream(s.getOutputStream());
-					welcomeClient.writeBytes(start + "\n");
+					clientOutput.writeBytes(start + "\n");
 				}
 				System.out.println(start);
 
 				SendAnswer();
 			}
-
-			//SHOULD NOT NEED, I KEPT FOR REFERENCE
-			// while (true)
-			// {
-			// 	// Get data sent from a client
-			// 	String clientText = clientInput.readLine();
-			// 	if (clientText != null)
-			// 	{
-			// 		System.out.println("Received: " + clientText);
-			// 		// Turn around and output this data
-			// 		// to all other clients except the one
-			// 		// that sent us this information
-			// 		for (Socket s : socketList)
-			// 		{
-			// 			if (s != connectionSock)
-			// 			{
-			// 				DataOutputStream clientOutput = new DataOutputStream(s.getOutputStream());
-			// 				clientOutput.writeBytes(clientText + "\n");
-			// 			}
-			// 		}
-			// 	}
-			// 	else
-			// 	{
-			// 	  // Connection was lost
-			// 	  System.out.println("Closing connection for socket " + connectionSock);
-			// 	   // Remove from arraylist
-			// 	   socketList.remove(connectionSock);
-			// 	   connectionSock.close();
-			// 	   break;
-			// 	}
-			// }
 		}
 		catch (Exception e)
 		{
@@ -101,7 +75,7 @@ public class JClientHandler implements Runnable
 	public void SendAnswer() throws Exception
 	{
 
-		int randomNum = (int)(Math.random() * (answers.size() + 1));
+		int randomNum = (int)(Math.random() * answers.size());
 		for (Socket s : socketList)
 		{
 			DataOutputStream clientOutput = new DataOutputStream(s.getOutputStream());
@@ -114,22 +88,21 @@ public class JClientHandler implements Runnable
 	public void GetResponse(int num) throws Exception
 	{
 		gameStart = true;
-		if(firstBuzzed == false)
+		while(myTurn)
 		{
-			if(gameStart = true)
+			if(gameStart)
 			{
-				BufferedReader buzzIn = new BufferedReader(
+				BufferedReader clientInput = new BufferedReader(
 					new InputStreamReader(connectionSock.getInputStream()));
-				for (Socket s : socketList)
-				{
-					DataOutputStream clientOutput = new DataOutputStream(s.getOutputStream());
-					//clientOutput.writeBytes(names[count] + " buzzed in first." + "\n");
-	
-				}
-				firstBuzzed = true;
+				receivedMessage = clientInput.readLine();
 			}
-		}
-	
+		}	
+	}
+
+	public void SendMessage(String message) throws Exception
+	{
+		DataOutputStream clientOutput = new DataOutputStream(connectionSock.getOutputStream());
+		clientOutput.writeBytes(message + "\n");
 	}
 
 } // ClientHandler for JServer.java
