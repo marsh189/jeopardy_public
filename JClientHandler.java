@@ -41,19 +41,44 @@ public class JClientHandler implements Runnable
 			int clientNum = socketList.size();
 			System.out.println("Connection made with Client number " + clientNum);
 			System.out.println("Name: " + names.get(clientNum-1));
-			SendMessage(clientNum  + names.get(clientNum - 1));
+			//SendMessage(clientNum  + names.get(clientNum - 1));
 			if(clientNum == 4)
 			{
 				SendMessage("4");
 			}
 
-			while(gameStart)
+			BufferedReader clientInput = new BufferedReader(
+						new InputStreamReader(connectionSock.getInputStream()));
+			while(true)
 			{
 				if(myTurn)
 				{
-					BufferedReader clientInput = new BufferedReader(
-						new InputStreamReader(connectionSock.getInputStream()));
-					receivedMessage = clientInput.readLine();
+					String input = clientInput.readLine();
+
+					if(input != null)
+					{
+						for(Socket s : socketList)
+						{
+							if(s != connectionSock)
+							{
+								DataOutputStream clientOutput = new DataOutputStream(s.getOutputStream());
+								clientOutput.writeBytes("Client " + socketList.indexOf(connectionSock) + ":" + input);
+							}
+						}
+						myTurn = false;
+						receivedMessage = input;
+						break;
+					}
+
+					else
+					{
+				 		 // Connection was lost
+				  		System.out.println("Closing connection for socket " + connectionSock);
+				   		// Remove from arraylist
+				  		socketList.remove(connectionSock);
+				  		connectionSock.close();
+				   		break;
+					}
 				}
 			}
 		}
@@ -66,20 +91,10 @@ public class JClientHandler implements Runnable
 	}
 
 
-	// public void GetResponse() throws Exception
-	// {
-	// 	gameStart = true;
-	// 	while(myTurn)
-	// 	{
-	// 		if(gameStart)
-	// 		{
-	// 			BufferedReader clientInput = new BufferedReader(
-	// 				new InputStreamReader(connectionSock.getInputStream()));
-	// 			receivedMessage = clientInput.readLine();
-				
-	// 		}
-	// 	}	
-	// }
+	public void GetResponse() throws Exception
+	{
+	
+	}
 
 	public void SendMessage(String message) throws Exception
 	{
