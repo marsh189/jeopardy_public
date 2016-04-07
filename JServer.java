@@ -66,92 +66,105 @@ public class JServer
 			// using control-c
 			while (true)
 			{
-		
-				switch (state)
+				try
 				{
-					case 0: //connect clients
-						while(true)
-						{
-							Socket connectionSock = serverSock.accept();
-							// Add this socket to the list
-							socketList.add(connectionSock);
+					switch (state)
+					{
+						case 0: //connect clients
+							while(socketList.size() < 3)
+							{
+								Socket connectionSock = serverSock.accept();
+								// Add this socket to the list
+								socketList.add(connectionSock);
 
-							//Store Names to array
-							BufferedReader clientInput = new BufferedReader(
-								new InputStreamReader(connectionSock.getInputStream()));
-							names.add(clientInput.readLine());
+								//Store Names to array
+								BufferedReader clientInput = new BufferedReader(
+									new InputStreamReader(connectionSock.getInputStream()));
+								names.add(clientInput.readLine());
+								
+								// Send to ClientHandler the socket,arraylist,list of q and a, and names of all sockets
+								JClientHandler handler = new JClientHandler(connectionSock, this.socketList, this.names);
+								Thread theThread = new Thread(handler);
+								theThread.start();
+								
+								if(socketList.size() == 1 && names.size() == 1)
+								{
+									handlerList.add(handler);
+									
+								}
+								else if(socketList.size() == 2 && names.size() == 2)
+								{
+									handlerList.add(handler);
+									
+								}
+								else if(socketList.size() == 3 && names.size() == 3)
+								{
+									handlerList.add(handler);
+									
+								}
+
+								if(socketList.size() == 3)
+								{
+									String start = "All Contestants have joined. Time to play JEOPARDY! \n";
+		
+									for (JClientHandler j : handlerList)
+									{
+										j.SendMessage(start);
+									}
+									
+									state = 1;
+									break;
+								}
+							}
 							
-							// Send to ClientHandler the socket,arraylist,list of q and a, and names of all sockets
-							JClientHandler handler = new JClientHandler(connectionSock, this.socketList, this.names);
-							Thread theThread = new Thread(handler);
-							theThread.start();
-							System.out.println(names.size());
-							if(socketList.size() == 1 && names.size() == 1)
-							{
-								handlerList.add(handler);
-								System.out.println(handlerList.size());
-							}
-							else if(socketList.size() == 2 && names.size() == 2)
-							{
-								handlerList.add(handler);
-								System.out.println(handlerList.size());
-							}
-							else if(socketList.size() == 3 && names.size() == 3)
-							{
-								handlerList.add(handler);
-								System.out.println(handlerList.size());
-							}
-
-							if(socketList.size() == 3)
-							{
-								state = 1;
-								break;
-							}
-						}
+						case 1: //send Answer to clients
 						
-					case 1:
-						try
-						{
 							int randomNum = (int)(Math.random() * answers.size());
 							for (JClientHandler j : handlerList)
 							{
-								j.SendMessage(answers.get(randomNum));
+								j.SendMessage("Answer: " + answers.get(randomNum));
+								j.gameStart = true;
 							}
 							System.out.println("Answer: " + answers.get(randomNum));
-						}
-						catch (Exception e)
-						{
-							System.out.println(e.getMessage());
-						}
 
-					case 2: //wait for buzz
-						
-						while(true)
-						{
-							try
+							state = 2;
+
+							break;
+
+						case 2: //wait for buzz
+							
+							while(true)
 							{
-								handlerList.get(0).GetResponse();
-								handlerList.get(1).GetResponse();
-								handlerList.get(2).GetResponse();
 
-
-								if(handlerList.get(0).receivedMessage.equals("1"))
-								{
-									buzzOrder[0] = 0;
-									handlerList.get(0).receivedMessage = "";
-								}
-								else if(handlerList.get(1).receivedMessage.equals("2"))
+								System.out.println("Handler 1: " + handlerList.get(0).receivedMessage);
+								System.out.println("Handler 2: " + handlerList.get(1).receivedMessage);
+								System.out.println("Handler 3: " + handlerList.get(2).receivedMessage);
+								if(handlerList.get(0).receivedMessage == "1")
 								{
 									buzzOrder[0] = 1;
-									handlerList.get(1).receivedMessage = "";
+									handlerList.get(0).receivedMessage = "";
+									System.out.println("number 1");
 								}
-								else if(handlerList.get(2).receivedMessage.equals("3"))
+								else if(handlerList.get(1).receivedMessage == "2")
 								{
 									buzzOrder[0] = 2;
+									handlerList.get(1).receivedMessage = "";
+									System.out.println("number 2");
+								}
+								else if(handlerList.get(2).receivedMessage == "3")
+								{
+									buzzOrder[0] = 3;
 									handlerList.get(2).receivedMessage = "";
+									System.out.println("number 3");
+
+								}
+								
+								if((handlerList.get(0).receivedMessage ==  null) && (handlerList.get(1).receivedMessage == null) && (handlerList.get(2).receivedMessage == null))
+								{
+									break;
 								}
 
-								if(buzzOrder[buzzOrder.length - 1] > 0)
+								if(buzzOrder[0] > 0)
 								{
 									state = 3;
 								}
@@ -167,22 +180,20 @@ public class JServer
 									break;
 								}
 							}
-							catch (Exception e)
-							{
-								System.out.println(e.getMessage());
-							}
-						}
-						break;
+							break;
 
-					case 3: //wait for answer
-						break;
+						case 3: //wait for answer
+							break;
 
-					default:
-						break;
+						default:
+							break;
+					}
 
 				}
-
-
+				catch (Exception e)
+				{
+					System.out.println("Error: " + e.getMessage());
+				}
 			}
 			// Will never get here, but if the above loop is given
 			// an exit condition then we'll go ahead and close the socket
@@ -190,7 +201,7 @@ public class JServer
 		}
 		catch (IOException e)
 		{
-			System.out.println(e.getMessage());
+			System.out.println("Error: " + e.getMessage());
 		}
 	}
 
@@ -199,4 +210,5 @@ public class JServer
 		JServer server = new JServer();
 		server.getConnection();
 	}
-} // MTServer
+
+} // JServer

@@ -22,9 +22,9 @@ public class JClientHandler implements Runnable
 	private Socket connectionSock = null;
 	private ArrayList<Socket> socketList;
 	public boolean myTurn = true;
+	public boolean gameStart = false;
 	public String receivedMessage;
 	ArrayList<String> names;
-	boolean gameStart = false;
 
 	JClientHandler(Socket sock, ArrayList<Socket> socketList, ArrayList<String> nameArr)
 	{
@@ -40,23 +40,21 @@ public class JClientHandler implements Runnable
 		{
 			int clientNum = socketList.size();
 			System.out.println("Connection made with Client number " + clientNum);
-			DataOutputStream welcomeClient = new DataOutputStream(socketList.get(clientNum - 1).getOutputStream());
-			welcomeClient.writeBytes(clientNum  + names.get(clientNum - 1) + "\n");
 			System.out.println("Name: " + names.get(clientNum-1));
+			SendMessage(clientNum  + names.get(clientNum - 1));
 			if(clientNum == 4)
 			{
-				welcomeClient.writeBytes(4 + "\n");
+				SendMessage("4");
 			}
-			if(clientNum == 3)
-			{
-				String start = "All Clients have joined. It is time to play JEAPORDY! \n";
-				for (Socket s : socketList)
-				{
-					DataOutputStream clientOutput = new DataOutputStream(s.getOutputStream());
-					clientOutput.writeBytes(start + "\n");
-				}
-				System.out.println(start);
 
+			while(gameStart)
+			{
+				if(myTurn)
+				{
+					BufferedReader clientInput = new BufferedReader(
+						new InputStreamReader(connectionSock.getInputStream()));
+					receivedMessage = clientInput.readLine();
+				}
 			}
 		}
 		catch (Exception e)
@@ -68,20 +66,20 @@ public class JClientHandler implements Runnable
 	}
 
 
-	public void GetResponse() throws Exception
-	{
-		gameStart = true;
-		while(myTurn)
-		{
-			if(gameStart)
-			{
-				BufferedReader clientInput = new BufferedReader(
-					new InputStreamReader(connectionSock.getInputStream()));
-				receivedMessage = clientInput.readLine();
-				System.out.println(receivedMessage);
-			}
-		}	
-	}
+	// public void GetResponse() throws Exception
+	// {
+	// 	gameStart = true;
+	// 	while(myTurn)
+	// 	{
+	// 		if(gameStart)
+	// 		{
+	// 			BufferedReader clientInput = new BufferedReader(
+	// 				new InputStreamReader(connectionSock.getInputStream()));
+	// 			receivedMessage = clientInput.readLine();
+				
+	// 		}
+	// 	}	
+	// }
 
 	public void SendMessage(String message) throws Exception
 	{
