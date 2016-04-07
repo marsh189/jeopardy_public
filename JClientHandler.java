@@ -57,14 +57,7 @@ public class JClientHandler implements Runnable
 
 					if(input != null)
 					{
-						for(Socket s : socketList)
-						{
-							if(s != connectionSock)
-							{
-								DataOutputStream clientOutput = new DataOutputStream(s.getOutputStream());
-								clientOutput.writeBytes("Client " + socketList.indexOf(connectionSock) + ":" + input);
-							}
-						}
+
 						myTurn = false;
 						receivedMessage = input;
 						break;
@@ -91,9 +84,25 @@ public class JClientHandler implements Runnable
 	}
 
 
-	public void GetResponse() throws Exception
+	public String GetResponse() throws Exception
 	{
-	
+		BufferedReader clientInput = new BufferedReader(
+						new InputStreamReader(connectionSock.getInputStream()));
+		while(true)
+		{
+			if(myTurn)
+			{
+				String input = clientInput.readLine();
+
+				if(input != null)
+				{
+
+					myTurn = false;
+					return input;
+					
+				}
+			}
+		}
 	}
 
 	public void SendMessage(String message) throws Exception
