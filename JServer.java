@@ -126,7 +126,7 @@ public class JServer
 							for (JClientHandler j : handlerList)
 							{
 								j.SendMessage("Answer: " + answers.get(randomNum));
-								j.SendMessage("\nPress any key to BUZZ in...");
+								j.SendMessage("\nPress 'Enter' to BUZZ in...");
 								j.gameStart = true;
 							}
 							System.out.println("Answer: " + answers.get(randomNum));
@@ -141,24 +141,24 @@ public class JServer
 							for(JClientHandler x : handlerList)
 							{
 								//System.out.println(x.receivedMessage);
-								if(x.receivedMessage != null)
+								if(x.receivedMessage != null)		//checks if any of the contestants sent anything in
 								{
 									int num = handlerList.indexOf(x);
 									state = 3;
 									buzzedInFirst = x;
 									x.SendMessage("You Buzzed in first!");
 									nameOfBuzzed = names.get(num);
-									System.out.println(nameOfBuzzed + " buzzed in first.");
+									System.out.println(nameOfBuzzed + " buzzed in first."); //prints out who buzzed in
 
 									for(JClientHandler j : canBuzzIn)
 									{
 										j.SendMessage(nameOfBuzzed+ " buzzed in first.");
 										j.myTurn = false;
-										j.receivedMessage = "";
+										j.receivedMessage = null;
 
 									}
 									
-									buzzedInFirst.receivedMessage = "";
+									buzzedInFirst.receivedMessage = null;
 									canBuzzIn.remove(x);
 
 									break;
@@ -179,28 +179,10 @@ public class JServer
 							break;
 
 						case 4: //check if correct or not
-							String temp = clientAnswer.substring(0, clientAnswer.indexOf("?"));
-							System.out.println(temp.toLowerCase());
-							System.out.println(questions.get(randomNum).toLowerCase());
-							String cAnswer = clientAnswer.toLowerCase();
-							String correctAnswer = questions.get(randomNum).toLowerCase();
-							if(cAnswer == correctAnswer)
+							int index =  clientAnswer.indexOf("?");
+							if(index < 0)
 							{
-								buzzedInFirst.SendMessage("You have entered the correct response.");
-								System.out.println("The correct response has been entered");
-								for(JClientHandler j : handlerList)
-								{
-									j.SendMessage(names.get(handlerList.indexOf(j)) + " has entered the correct response. Prepare for the next round.");
-								}
-								questions.remove(randomNum);
-								answers.remove(randomNum);
-								canBuzzIn = handlerList;
-								state = 1;
-							}
-
-							else
-							{
-								System.out.println("You have not entered the correct response.");
+								buzzedInFirst.SendMessage("Your answer should include a ?");
 								for(JClientHandler j : handlerList)
 								{
 									j.SendMessage(nameOfBuzzed + " has not entered the correct response.");
@@ -208,7 +190,40 @@ public class JServer
 								}
 								state = 2;
 							}
+							else
+							{
+								String temp = clientAnswer.substring(0,index);
+								System.out.println(temp.toLowerCase());
+								System.out.println(questions.get(randomNum).toLowerCase());
+								String cAnswer = temp.toLowerCase();
+								String correctAnswer = (String)questions.get(randomNum).toLowerCase();
+								if(cAnswer.equals(correctAnswer))
+								{
+									buzzedInFirst.SendMessage("You have entered the correct response.");
+									System.out.println("The correct response has been entered");
+									for(JClientHandler j : handlerList)
+									{
+										j.SendMessage(names.get(handlerList.indexOf(j)) + " has entered the correct response. Prepare for the next round.");
+									}
+									questions.remove(randomNum);
+									answers.remove(randomNum);
+									canBuzzIn = handlerList;
+									state = 1;
+								}
+
+								else
+								{
+									System.out.println("You have not entered the correct response.");
+									for(JClientHandler j : handlerList)
+									{
+										j.SendMessage(nameOfBuzzed + " has not entered the correct response.");
+										j.SendMessage("remaining contestants have another opportunity to answer this question ");
+									}
+									state = 2;
+								}
+							}
 							break;
+
 						default:
 							break;
 					}

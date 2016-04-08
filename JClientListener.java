@@ -43,7 +43,7 @@ public class JClientListener implements Runnable
 				}
 				else
 				{
-					System.out.println("Welcome " + name + ". You are client number " + num);
+					//System.out.println("Welcome " + name + ". You are client number " + num);
 					findClientNum = false;
 				}
 			}
