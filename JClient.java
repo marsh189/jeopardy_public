@@ -24,8 +24,9 @@ public class JClient
 {
 	public static void main(String[] args)
 	{
+		//implemented by Haley
 		System.out.println("*** WELCOME TO JEOPARDY ***");
-		System.out.print("\nEnter your name: ");
+		System.out.print("\nEnter your name: ");	//gets name from user to be sent to server
 		Scanner n = new Scanner(System.in);
 		String name = n.nextLine(); 
 
@@ -39,8 +40,9 @@ public class JClient
 
 			DataOutputStream serverOutput = new DataOutputStream(connectionSock.getOutputStream());
 
-			System.out.println("Connection made.");
+			System.out.println("Connection made."); //send name to server
 			serverOutput.writeBytes(name + "\n");
+
 			// Start a thread to listen and display data sent by the server
 			JClientListener listener = new JClientListener(connectionSock);
 			Thread theThread = new Thread(listener);

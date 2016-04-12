@@ -1,3 +1,9 @@
 What is Flow Control
 What is the Three Way Handshake
 What is SMTP
+What is 128
+What is Reno
+Who is Dijkstra
+What is a socket address
+What is 8
+What is 16 bits

@@ -17,14 +17,16 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.ArrayList;
 
+//All code in this file was written by both Haley and Matt
 public class JClientHandler implements Runnable
 {
 	private Socket connectionSock = null;
 	private ArrayList<Socket> socketList;
+	private ArrayList<String> names;
+
 	public boolean myTurn = true;
 	public boolean gameStart = false;
 	public String receivedMessage;
-	ArrayList<String> names;
 
 	JClientHandler(Socket sock, ArrayList<Socket> socketList, ArrayList<String> nameArr)
 	{
@@ -35,20 +37,22 @@ public class JClientHandler implements Runnable
 
 	public void run()
 	{
-        		// Get data from a client and Starts the game
+        // Get data from a client and Starts the game
 		try
 		{
 			int clientNum = socketList.size();
 			System.out.println("Connection made with Client number " + clientNum);
 			System.out.println("Name: " + names.get(clientNum-1));
-			//SendMessage(clientNum  + names.get(clientNum - 1));
+			
 			if(clientNum == 4)
 			{
 				SendMessage("4");
 			}
 
 			BufferedReader clientInput = new BufferedReader(
-						new InputStreamReader(connectionSock.getInputStream()));
+				new InputStreamReader(connectionSock.getInputStream()));
+
+			//waits for something to be entered as a buzz in
 			while(true)
 			{
 				if(myTurn)
@@ -67,6 +71,7 @@ public class JClientHandler implements Runnable
 					{
 				 		 // Connection was lost
 				  		System.out.println("Closing connection for socket " + connectionSock);
+				   		
 				   		// Remove from arraylist
 				  		socketList.remove(connectionSock);
 				  		connectionSock.close();
@@ -83,11 +88,11 @@ public class JClientHandler implements Runnable
 		}
 	}
 
-
+	//Receives a response from the contestant
 	public String GetResponse() throws Exception
 	{
 		BufferedReader clientInput = new BufferedReader(
-						new InputStreamReader(connectionSock.getInputStream()));
+			new InputStreamReader(connectionSock.getInputStream()));
 		while(true)
 		{
 			if(myTurn)
@@ -105,10 +110,11 @@ public class JClientHandler implements Runnable
 		}
 	}
 
+	//Sends a message to the contestant
 	public void SendMessage(String message) throws Exception
 	{
 		DataOutputStream clientOutput = new DataOutputStream(connectionSock.getOutputStream());
 		clientOutput.writeBytes(message + "\n");
 	}
 
-} // ClientHandler for JServer.java
+} // JClientHandler for JServer.java

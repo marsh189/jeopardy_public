@@ -28,13 +28,15 @@ public class JServer
 	public int clientCount;
 	private ArrayList<String> answers = new ArrayList<String>();
 	private ArrayList<String> questions = new ArrayList<String>();
+	private ArrayList<String> alternates = new ArrayList<String>();
+	private JClientHandler buzzedInFirst;
+	private String nameOfBuzzed;
+
+	ArrayList<JClientHandler> handlerList = new ArrayList<JClientHandler>();
+	ArrayList<JClientHandler> canBuzzIn = new ArrayList<JClientHandler>();
 	ArrayList<String> names = new ArrayList<String>();
 	String clientAnswer = "";
 	int randomNum;
-	private JClientHandler buzzedInFirst;
-	private String nameOfBuzzed;
-	ArrayList<JClientHandler> handlerList = new ArrayList<JClientHandler>();
-	ArrayList<JClientHandler> canBuzzIn = new ArrayList<JClientHandler>();
 	int state = 0;
 
 	public JServer()
@@ -48,23 +50,28 @@ public class JServer
 		// Wait for a connection from the client
 		try
 		{
-			//read files for answers and questions
+			//read files for answers and questions (Matt implemented this)
 			Scanner ansScanner = new Scanner(new File("Answers.txt"));
 			Scanner qScanner = new Scanner(new File("Questions.txt"));
-
+			Scanner altScanner = new Scanner(new File("Alternates.txt"));
 			String aCurrent;
 			String qCurrent;
+			String altCurrent;
 
 			while (ansScanner.hasNextLine())
 			{
 				aCurrent = ansScanner.nextLine();
 				qCurrent = qScanner.nextLine();
+				altCurrent = altScanner.nextLine();
 				answers.add(aCurrent);
 				questions.add(qCurrent);
+				alternates.add(altCurrent);
+
 			}
 
 			System.out.println("Waiting for client connections on port 7654.");
 			ServerSocket serverSock = new ServerSocket(7654);
+
 			// This is an infinite loop, the user will have to shut it down
 			// using control-c
 			while (true)
@@ -85,20 +92,19 @@ public class JServer
 									new InputStreamReader(connectionSock.getInputStream()));
 								names.add(clientInput.readLine());
 								
-								// Send to ClientHandler the socket,arraylist,list of q and a, and names of all sockets
+								// Send to ClientHandler the socket, arraylist, and names of all sockets
 								JClientHandler handler = new JClientHandler(connectionSock, this.socketList, this.names);
 								Thread theThread = new Thread(handler);
 								theThread.start();
 								
+								//Adds ClientHandlers in handlerList
 								if(socketList.size() == 1 && names.size() == 1)
 								{
-									handlerList.add(handler);
-									
+									handlerList.add(handler);	
 								}
 								else if(socketList.size() == 2 && names.size() == 2)
 								{
-									handlerList.add(handler);
-									
+									handlerList.add(handler);	
 								}
 								else if(socketList.size() == 3 && names.size() == 3)
 								{
@@ -106,7 +112,7 @@ public class JServer
 									canBuzzIn = handlerList;
 								}
 
-								if(socketList.size() == 3)
+								if(socketList.size() == 3) //Starts Game
 								{
 									String start = "All Contestants have joined. Time to play JEOPARDY! \n";
 		
@@ -136,12 +142,12 @@ public class JServer
 
 							break;
 
-						case 2: //wait for buzz
+						case 2: //wait for buzz (worked on by both Haley and Matt)
 
 							for(JClientHandler x : handlerList)
 							{
 								//System.out.println(x.receivedMessage);
-								if(x.receivedMessage != null)		//checks if any of the contestants sent anything in
+								if(x.receivedMessage != null)		//checks if any of the contestants clicked Enter
 								{
 									int num = handlerList.indexOf(x);
 									state = 3;
@@ -167,7 +173,7 @@ public class JServer
 							}
 							break;
 
-						case 3: //wait and receive answer
+						case 3: //wait and receive answer (implemented my Matt)
 							buzzedInFirst.SendMessage("Type your response:");
 							buzzedInFirst.myTurn = true;
 							String ans = buzzedInFirst.GetResponse();
@@ -178,7 +184,7 @@ public class JServer
 							}
 							break;
 
-						case 4: //check if correct or not
+						case 4: //check if correct or not (implemented by Haley)
 							int index =  clientAnswer.indexOf("?");
 							if(index < 0)
 							{
@@ -197,17 +203,21 @@ public class JServer
 								System.out.println(questions.get(randomNum).toLowerCase());
 								String cAnswer = temp.toLowerCase();
 								String correctAnswer = (String)questions.get(randomNum).toLowerCase();
-								if(cAnswer.equals(correctAnswer))
+								String alt = (String)alternates.get(randomNum).toLowerCase();
+
+								if(cAnswer.equals(correctAnswer) || cAnswer.equals(alt))
 								{
 									buzzedInFirst.SendMessage("You have entered the correct response.");
 									System.out.println("The correct response has been entered");
 									for(JClientHandler j : handlerList)
 									{
 										j.SendMessage(names.get(handlerList.indexOf(j)) + " has entered the correct response. Prepare for the next round.");
+
 									}
 									questions.remove(randomNum);
 									answers.remove(randomNum);
-									canBuzzIn = handlerList;
+									alternates.remove(randomNum);
+									canBuzzIn.add(buzzedInFirst);
 									state = 1;
 								}
 

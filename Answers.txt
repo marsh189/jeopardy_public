@@ -1,3 +1,9 @@
 The connection control mechanism that is negotiated between a client and server
 The process of establishing a TCP connection
 The protocol for communication between two email servers
+An IPv6 address is this many bits long.
+A TCP congestion avoidance protocol.
+He created an algorithm for finding the shortest path between nodes in a graph
+This consists of a port number and ip address
+UDP packets have a header of this many bytes.
+A port number is this many bits long.
