@@ -24,9 +24,10 @@ public class JClientHandler implements Runnable
 	private ArrayList<Socket> socketList;
 	private ArrayList<String> names;
 
-	public boolean myTurn = true;
-	public boolean gameStart = false;
+	public int myIndex;
+	public String myName;
 	public String receivedMessage;
+	public boolean canBuzzIn = true; //If true, Client is able to buzz in
 
 	JClientHandler(Socket sock, ArrayList<Socket> socketList, ArrayList<String> nameArr)
 	{
@@ -41,9 +42,10 @@ public class JClientHandler implements Runnable
 		try
 		{
 			int clientNum = socketList.size();
+			myIndex = clientNum - 1;
 			System.out.println("Connection made with Client number " + clientNum);
 			System.out.println("Name: " + names.get(clientNum-1));
-			
+			myName = names.get(clientNum-1);
 			if(clientNum == 4)
 			{
 				SendMessage("4");
@@ -55,28 +57,23 @@ public class JClientHandler implements Runnable
 			//waits for something to be entered as a buzz in
 			while(true)
 			{
-				if(myTurn)
+
+				receivedMessage = clientInput.readLine();
+
+				if(receivedMessage != null)
 				{
-					String input = clientInput.readLine();
+					break;
+				}
 
-					if(input != null)
-					{
-
-						myTurn = false;
-						receivedMessage = input;
-						break;
-					}
-
-					else
-					{
-				 		 // Connection was lost
-				  		System.out.println("Closing connection for socket " + connectionSock);
-				   		
-				   		// Remove from arraylist
-				  		socketList.remove(connectionSock);
-				  		connectionSock.close();
-				   		break;
-					}
+				else
+				{
+			 		 // Connection was lost
+			  		System.out.println("Closing connection for socket " + connectionSock);
+			   		
+			   		// Remove from arraylist
+			  		socketList.remove(connectionSock);
+			  		connectionSock.close();
+			   		break;
 				}
 			}
 		}
@@ -95,17 +92,11 @@ public class JClientHandler implements Runnable
 			new InputStreamReader(connectionSock.getInputStream()));
 		while(true)
 		{
-			if(myTurn)
+			String input = clientInput.readLine();
+
+			if(input != null)
 			{
-				String input = clientInput.readLine();
-
-				if(input != null)
-				{
-
-					myTurn = false;
-					return input;
-					
-				}
+				return input;	
 			}
 		}
 	}

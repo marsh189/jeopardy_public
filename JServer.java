@@ -33,11 +33,12 @@ public class JServer
 	private String nameOfBuzzed;
 
 	ArrayList<JClientHandler> handlerList = new ArrayList<JClientHandler>();
-	ArrayList<JClientHandler> canBuzzIn = new ArrayList<JClientHandler>();
+	//ArrayList<JClientHandler> canBuzzIn = new ArrayList<JClientHandler>();
 	ArrayList<String> names = new ArrayList<String>();
 	String clientAnswer = "";
 	int randomNum;
 	int state = 0;
+	int num;
 
 	public JServer()
 	{
@@ -109,7 +110,7 @@ public class JServer
 								else if(socketList.size() == 3 && names.size() == 3)
 								{
 									handlerList.add(handler);
-									canBuzzIn = handlerList;
+									//canBuzzIn = handlerList;
 								}
 
 								if(socketList.size() == 3) //Starts Game
@@ -133,7 +134,6 @@ public class JServer
 							{
 								j.SendMessage("Answer: " + answers.get(randomNum));
 								j.SendMessage("\nPress 'Enter' to BUZZ in...");
-								j.gameStart = true;
 							}
 							System.out.println("Answer: " + answers.get(randomNum));
 							System.out.println("\nWaiting for clients to BUZZ in.");
@@ -146,36 +146,34 @@ public class JServer
 
 							for(JClientHandler x : handlerList)
 							{
-								//System.out.println(x.receivedMessage);
+
 								if(x.receivedMessage != null)		//checks if any of the contestants clicked Enter
 								{
-									int num = handlerList.indexOf(x);
+									num = handlerList.indexOf(x);
 									state = 3;
 									buzzedInFirst = x;
 									x.SendMessage("You Buzzed in first!");
 									nameOfBuzzed = names.get(num);
 									System.out.println(nameOfBuzzed + " buzzed in first."); //prints out who buzzed in
 
-									for(JClientHandler j : canBuzzIn)
+									for(JClientHandler j : handlerList)
 									{
-										j.SendMessage(nameOfBuzzed+ " buzzed in first.");
-										j.myTurn = false;
+										j.SendMessage(nameOfBuzzed+ " buzzed in first.");										
 										j.receivedMessage = null;
+										j.canBuzzIn = false;
 
 									}
 									
 									buzzedInFirst.receivedMessage = null;
-									canBuzzIn.remove(x);
 
 									break;
 								}
-
 							}
 							break;
 
 						case 3: //wait and receive answer (implemented my Matt)
+
 							buzzedInFirst.SendMessage("Type your response:");
-							buzzedInFirst.myTurn = true;
 							String ans = buzzedInFirst.GetResponse();
 							if(ans != null || ans != "")
 							{
@@ -185,52 +183,55 @@ public class JServer
 							break;
 
 						case 4: //check if correct or not (implemented by Haley)
-							int index =  clientAnswer.indexOf("?");
-							if(index < 0)
+
+							String cAnswer = clientAnswer.toLowerCase();
+							String correctAnswer = (String)questions.get(randomNum).toLowerCase();
+							String alt = (String)alternates.get(randomNum).toLowerCase();
+
+							System.out.println(cAnswer);
+							if(alt != "")
 							{
-								buzzedInFirst.SendMessage("Your answer should include a ?");
+								System.out.println(correctAnswer + " or " + alt);
+							}
+							else
+							{
+								System.out.println(correctAnswer);
+							}
+
+							if(cAnswer.equals(correctAnswer) || cAnswer.equals(alt))
+							{
+								buzzedInFirst.SendMessage("You have entered the correct response.");
+								System.out.println("The correct response has been entered");
+								
+								for(JClientHandler j : handlerList)
+								{
+									j.SendMessage(names.get(handlerList.indexOf(j)) + " has entered the correct response. Prepare for the next round.");
+									
+								}
+								questions.remove(randomNum);
+								answers.remove(randomNum);
+								alternates.remove(randomNum);
+								buzzedInFirst = null;
+								state = 1;
+							}
+
+							else
+							{
+								System.out.println("You have not entered the correct response.");
 								for(JClientHandler j : handlerList)
 								{
 									j.SendMessage(nameOfBuzzed + " has not entered the correct response.");
 									j.SendMessage("remaining contestants have another opportunity to answer this question ");
 								}
+								for(JClientHandler x : handlerList)
+								{
+									if(x.myName != buzzedInFirst.myName)
+									{
+										x.SendMessage("Press 'Enter to Buzz in...");
+										x.canBuzzIn = true;
+									}
+								}
 								state = 2;
-							}
-							else
-							{
-								String temp = clientAnswer.substring(0,index);
-								System.out.println(temp.toLowerCase());
-								System.out.println(questions.get(randomNum).toLowerCase());
-								String cAnswer = temp.toLowerCase();
-								String correctAnswer = (String)questions.get(randomNum).toLowerCase();
-								String alt = (String)alternates.get(randomNum).toLowerCase();
-
-								if(cAnswer.equals(correctAnswer) || cAnswer.equals(alt))
-								{
-									buzzedInFirst.SendMessage("You have entered the correct response.");
-									System.out.println("The correct response has been entered");
-									for(JClientHandler j : handlerList)
-									{
-										j.SendMessage(names.get(handlerList.indexOf(j)) + " has entered the correct response. Prepare for the next round.");
-
-									}
-									questions.remove(randomNum);
-									answers.remove(randomNum);
-									alternates.remove(randomNum);
-									canBuzzIn.add(buzzedInFirst);
-									state = 1;
-								}
-
-								else
-								{
-									System.out.println("You have not entered the correct response.");
-									for(JClientHandler j : handlerList)
-									{
-										j.SendMessage(nameOfBuzzed + " has not entered the correct response.");
-										j.SendMessage("remaining contestants have another opportunity to answer this question ");
-									}
-									state = 2;
-								}
 							}
 							break;
 
