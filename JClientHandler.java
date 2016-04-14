@@ -28,6 +28,7 @@ public class JClientHandler implements Runnable
 	public String myName;
 	public String receivedMessage;
 	public boolean canBuzzIn = true; //If true, Client is able to buzz in
+	public boolean canAnswer = false;
 
 	JClientHandler(Socket sock, ArrayList<Socket> socketList, ArrayList<String> nameArr)
 	{
@@ -41,6 +42,7 @@ public class JClientHandler implements Runnable
         // Get data from a client and Starts the game
 		try
 		{
+			
 			int clientNum = socketList.size();
 			myIndex = clientNum - 1;
 			System.out.println("Connection made with Client number " + clientNum);
@@ -51,13 +53,10 @@ public class JClientHandler implements Runnable
 				SendMessage("4");
 			}
 
-			BufferedReader clientInput = new BufferedReader(
-				new InputStreamReader(connectionSock.getInputStream()));
-
 			//waits for something to be entered as a buzz in
-			while(true)
+			while(canBuzzIn)
 			{
-
+				BufferedReader clientInput = new BufferedReader(new InputStreamReader(connectionSock.getInputStream()));
 				receivedMessage = clientInput.readLine();
 
 				if(receivedMessage != null)
@@ -84,22 +83,22 @@ public class JClientHandler implements Runnable
 			socketList.remove(connectionSock);
 		}
 	}
-
+	
 	//Receives a response from the contestant
 	public String GetResponse() throws Exception
 	{
-		BufferedReader clientInput = new BufferedReader(
-			new InputStreamReader(connectionSock.getInputStream()));
 
-		while(true)
+		BufferedReader cInput = new BufferedReader(new InputStreamReader(connectionSock.getInputStream()));
+		while(canAnswer)
 		{
-			String input = clientInput.readLine();
+			String input = cInput.readLine();
 
 			if(input != null)
 			{
 				return input;	
 			}
 		}
+		return "";
 	}
 
 	//Sends a message to the contestant

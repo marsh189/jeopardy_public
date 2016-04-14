@@ -33,9 +33,8 @@ public class JServer
 	private String nameOfBuzzed;
 
 	ArrayList<JClientHandler> handlerList = new ArrayList<JClientHandler>();
-	//ArrayList<JClientHandler> canBuzzIn = new ArrayList<JClientHandler>();
 	ArrayList<String> names = new ArrayList<String>();
-	String clientAnswer = "";
+	String clientAnswer;
 	int randomNum;
 	int state = 0;
 	int num;
@@ -110,7 +109,7 @@ public class JServer
 								else if(socketList.size() == 3 && names.size() == 3)
 								{
 									handlerList.add(handler);
-									//canBuzzIn = handlerList;
+									
 								}
 
 								if(socketList.size() == 3) //Starts Game
@@ -136,7 +135,8 @@ public class JServer
 								j.SendMessage("\nPress 'Enter' to BUZZ in...");
 								j.canBuzzIn = true; //changed
 							}
-							System.out.println("Answer: " + answers.get(randomNum));
+
+							System.out.println("\nAnswer: " + answers.get(randomNum));
 							System.out.println("Question: " + questions.get(randomNum));
 
 							System.out.println("\nWaiting for clients to BUZZ in.");
@@ -153,7 +153,7 @@ public class JServer
 								if(x.receivedMessage != null)		//checks if any of the contestants clicked Enter
 								{
 									num = handlerList.indexOf(x);
-									state = 3;
+									//state = 3;
 									buzzedInFirst = x;
 									x.SendMessage("You Buzzed in first!");
 									nameOfBuzzed = names.get(num);
@@ -161,24 +161,26 @@ public class JServer
 
 									for(JClientHandler j : handlerList)
 									{
-										j.SendMessage(nameOfBuzzed+ " buzzed in first.");										
+										j.SendMessage(nameOfBuzzed + " buzzed in first.");										
 										j.receivedMessage = null;
 										j.canBuzzIn = false;
-
 									}
 									
 									buzzedInFirst.receivedMessage = null;
-									//buzzedInFirst.canBuzzIn = true;
-
-									break;
+									state = 3;
+									//break;
 								}
 							}
 							break;
 
 						case 3: //wait and receive answer (implemented my Matt)
 
+							buzzedInFirst.canAnswer = true;
 							buzzedInFirst.SendMessage("Type your response:");
 							String ans = buzzedInFirst.GetResponse();
+
+							System.out.println(ans);
+
 							if(ans != null || ans != "")
 							{
 								clientAnswer = ans;
@@ -193,7 +195,7 @@ public class JServer
 							String alt = alternates.get(randomNum).toLowerCase();
 
 							System.out.println(cAnswer);
-							if(alt == " ")
+							if(alt == "")
 							{
 								System.out.println(correctAnswer);
 							}
@@ -221,7 +223,7 @@ public class JServer
 
 							else
 							{
-								System.out.println("You have not entered the correct response.");
+								System.out.println("The correct response has not been entered.");
 								for(JClientHandler j : handlerList)
 								{
 									j.SendMessage(nameOfBuzzed + " has not entered the correct response.");
