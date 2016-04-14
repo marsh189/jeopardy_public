@@ -62,7 +62,7 @@ public class JClientHandler implements Runnable
 
 				if(receivedMessage != null)
 				{
-					break;
+					canBuzzIn = false; //changed
 				}
 
 				else
@@ -90,6 +90,7 @@ public class JClientHandler implements Runnable
 	{
 		BufferedReader clientInput = new BufferedReader(
 			new InputStreamReader(connectionSock.getInputStream()));
+
 		while(true)
 		{
 			String input = clientInput.readLine();

@@ -128,14 +128,17 @@ public class JServer
 							}
 							
 						case 1: //send Answer to clients
-						
+							
 							randomNum = (int)(Math.random() * answers.size());
 							for (JClientHandler j : handlerList)
 							{
 								j.SendMessage("Answer: " + answers.get(randomNum));
 								j.SendMessage("\nPress 'Enter' to BUZZ in...");
+								j.canBuzzIn = true; //changed
 							}
 							System.out.println("Answer: " + answers.get(randomNum));
+							System.out.println("Question: " + questions.get(randomNum));
+
 							System.out.println("\nWaiting for clients to BUZZ in.");
 
 							state = 2;
@@ -165,6 +168,7 @@ public class JServer
 									}
 									
 									buzzedInFirst.receivedMessage = null;
+									//buzzedInFirst.canBuzzIn = true;
 
 									break;
 								}
@@ -185,17 +189,17 @@ public class JServer
 						case 4: //check if correct or not (implemented by Haley)
 
 							String cAnswer = clientAnswer.toLowerCase();
-							String correctAnswer = (String)questions.get(randomNum).toLowerCase();
-							String alt = (String)alternates.get(randomNum).toLowerCase();
+							String correctAnswer = questions.get(randomNum).toLowerCase();
+							String alt = alternates.get(randomNum).toLowerCase();
 
 							System.out.println(cAnswer);
-							if(alt != "")
+							if(alt == " ")
 							{
-								System.out.println(correctAnswer + " or " + alt);
+								System.out.println(correctAnswer);
 							}
 							else
 							{
-								System.out.println(correctAnswer);
+								System.out.println(correctAnswer + " or " + alt);
 							}
 
 							if(cAnswer.equals(correctAnswer) || cAnswer.equals(alt))
